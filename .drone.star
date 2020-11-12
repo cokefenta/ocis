@@ -167,8 +167,7 @@ def testing(ctx, module):
       'image': 'webhippie/golang:1.14',
       'pull': 'always',
       'commands': [
-        'cd %s' % (module),
-        'make vet',
+        'make -C %s vet' % (module),
       ],
       'volumes': [
         {
@@ -182,8 +181,7 @@ def testing(ctx, module):
       'image': 'webhippie/golang:1.14',
       'pull': 'always',
       'commands': [
-        'cd %s' % (module),
-        'make staticcheck',
+        'make -C %s staticcheck' % (module),
       ],
       'volumes': [
         {
@@ -197,8 +195,7 @@ def testing(ctx, module):
       'image': 'webhippie/golang:1.14',
       'pull': 'always',
       'commands': [
-        'cd %s' % (module),
-        'make lint',
+        'make -C %s lint' % (module),
       ],
       'volumes': [
         {
@@ -212,9 +209,8 @@ def testing(ctx, module):
         'image': 'webhippie/golang:1.14',
         'pull': 'always',
         'commands': [
-          'cd %s' % (module),
-          'make test',
-          'mv coverage.out %s_coverage.out' % (module),
+          'make -C %s test' % (module),
+          'mv %s/coverage.out %s_coverage.out' % (module, module),
         ],
         'volumes': [
           {
@@ -231,7 +227,7 @@ def testing(ctx, module):
             'from_secret': 'cache_s3_endpoint'
           },
           'bucket': 'cache',
-          'source': '%s/%s_coverage.out' % (module, module),
+          'source': '%s_coverage.out' % (module),
           'target': '%s/%s/coverage' % (ctx.repo.slug, ctx.build.commit + '-${DRONE_BUILD_NUMBER}'),
           'path_style': True,
           'strip_prefix': module,
@@ -365,8 +361,7 @@ def localApiTests(ctx, coreBranch = 'master', coreCommit = '', storage = 'ownclo
           'PATH_TO_CORE': '/srv/app/testrunner',
         },
         'commands': [
-          'cd ocis',
-          'make test-acceptance-api',
+          'make -C ocis test-acceptance-api',
         ],
         'volumes': [{
           'name': 'gopath',
@@ -422,8 +417,7 @@ def coreApiTests(ctx, coreBranch = 'master', coreCommit = '', part_number = 1, n
           'EXPECTED_FAILURES_FILE': '/drone/src/ocis/tests/acceptance/expected-failures-on-%s-storage.txt' % (storage.upper()),
         },
         'commands': [
-          'cd /srv/app/testrunner',
-          'make test-acceptance-api',
+          'make -C /srv/app/testrunner test-acceptance-api',
         ],
         'volumes': [{
           'name': 'gopath',
@@ -822,8 +816,7 @@ def binary(ctx, name):
         'image': 'webhippie/golang:1.14',
         'pull': 'always',
         'commands': [
-          'cd ocis',
-          'make release-%s' % (name),
+          'make -C ocis release-%s' % (name),
         ],
         'volumes': [
           {
@@ -837,8 +830,7 @@ def binary(ctx, name):
         'image': 'webhippie/golang:1.14',
         'pull': 'always',
         'commands': [
-          'cd ocis',
-          'make release-finish',
+          'make -C ocis release-finish',
         ],
         'volumes': [
           {
@@ -1027,8 +1019,7 @@ def changelog(ctx):
         'image': 'webhippie/golang:1.14',
         'pull': 'always',
         'commands': [
-          'cd ocis',
-          'make changelog',
+          'make -C ocis changelog',
         ],
       },
       {
@@ -1168,7 +1159,7 @@ def docs(ctx):
   generateConfigDocs = []
 
   for module in config['modules']:
-    generateConfigDocs += ['cd /drone/src/%s' % (module), 'make config-docs-generate']
+    generateConfigDocs.append('make -C %s config-docs-generate' % (module))
 
   return {
     'kind': 'pipeline',
@@ -1183,7 +1174,7 @@ def docs(ctx):
         'name': 'prepare',
         'image': 'owncloudci/alpine:latest',
         'commands': [
-          'make docs-copy'
+          'make -C docs docs-copy'
         ],
       },
       {
@@ -1201,15 +1192,16 @@ def docs(ctx):
         'name': 'test',
         'image': 'owncloudci/hugo:0.71.0',
         'commands': [
-          'cd hugo',
+          'cd docs/hugo',
           'hugo',
         ],
       },
       {
-        'name': 'list',
+        'name': 'list and remove temporary files',
         'image': 'owncloudci/alpine:latest',
         'commands': [
           'tree hugo/public',
+          'rm -rf docs/hugo',
         ],
       },
       {
@@ -1279,8 +1271,7 @@ def generate(module):
       'image': 'webhippie/golang:1.14',
       'pull': 'always',
       'commands': [
-        'cd %s' % (module),
-        'make generate',
+        'make -C %s generate' % (module),
       ],
       'volumes': [
         {
@@ -1481,8 +1472,7 @@ def build():
       'image': 'webhippie/golang:1.14',
       'pull': 'always',
       'commands': [
-        'cd ocis',
-        'make build',
+        'make -C ocis build',
       ],
       'volumes': [
         {
